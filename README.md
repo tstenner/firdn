@@ -14,7 +14,10 @@ No C++ code to construct a lowpass FIR filter is included, but the included
 Python script can create and export a filter of your choice.
 
 Downsampling is only possible in integer ratios, e.g. 100->50Hz, but not
-100->75Hz.
+100->75Hz. PRs to implement upsampling are welcome.
+
+Currently, the input buffer needs to have at least as many samples as
+filter has coefficients. This requirement will be removed in a later release.
 
 # License
 
