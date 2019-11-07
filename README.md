@@ -8,6 +8,28 @@ After constructing the downsampler, no further allocations and almost
 no copies of your data are made. Most compilers should be smart enough to use
 SSE/AVX intrinsics.
 
+# Example code
+
+``` cpp
+int data1[] = {
+	1, 13, 24,
+	1, 13, 26,
+	2, 14, 28,
+	2, 14, 30,
+	3, 15, 32,
+	3, 15, 34
+};
+int coef1[] = {1, 1, 0};
+auto downrate = 2u, nchan = 3u, ncoef = 3u;
+auto r(firdn::makeDownsampler<int>(downrate, nchan, coef1, ncoef));
+std::vector<int> out;
+// Downsample first half, one sample is left over
+r(data, nsample / downrate, out);
+// Downsample second half, continueing with the left over sample and appending
+// to the `out` vector
+r(data + nsample * nchan / downrate, nsample / downrate, out2);
+```
+
 # Limitations
 
 No C++ code to construct a lowpass FIR filter is included, but the included
