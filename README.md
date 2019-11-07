@@ -1,6 +1,6 @@
 # firdn
 
-An (almost*) header only downsampling library in plain C++.
+An (almost\*) header only downsampling library in plain C++.
 It can downsample multiplexed data of any type (that implements
 `operator*`) after filtering it with a FIR filter of your choice.
 
@@ -42,6 +42,8 @@ r(data + nsample * nchan / downrate, nsample / downrate, out2);
 
 No C++ code to construct a lowpass FIR filter is included, but the included
 Python script can create and export a filter of your choice.
+You can then compile the filter coefficients into an object file so you can use
+them as any other array.
 
 Downsampling is only possible in integer ratios, e.g. 100->50Hz, but not
 100->75Hz. PRs to implement upsampling are welcome.
