@@ -8,6 +8,14 @@ After constructing the downsampler, no further allocations and almost
 no copies of your data are made. Most compilers should be smart enough to use
 SSE/AVX intrinsics.
 
+## `filter2c`
+
+The `charconv` implementation in MSVC 2017 produces the shortest lossless
+floating point string representations.
+
+`filter2c` opens the file supplied as first command line argument and prints
+a C source file as `make_filter.py` would.
+
 # Example code
 
 ``` cpp
