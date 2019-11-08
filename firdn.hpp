@@ -50,17 +50,16 @@ using uint = uint_fast32_t;
 (especially for code like *out = *in * *coef
 aren't possible. __restrict__ is a non-standard extension that promises the
 compiler our arrays don't overlap*/
-#define RESTRICT __restrict__
+#define RESTRICT __restrict
 
 template <class In, class Out, class Coef> class Downsampler {
 public:
-	using CoefIter = typename std::vector<Coef>::const_iterator;
+	using CoefIter = Coef const *RESTRICT;
 
 	/* The coefficients are copied into local storage in a transposed, flipped
 			arrangement. Since no upsampling is done, this is simply the reversed
 			coefficient vector */
-	Downsampler(
-		uint downRate, uint nChan, const Coef *coefs, uint coefCount)
+	Downsampler(uint downRate, uint nChan, Coef *coefs, uint coefCount)
 		: _downRate(downRate), _nChan(nChan),
 		  _coefs(std::make_reverse_iterator(coefs + coefCount), std::make_reverse_iterator(coefs)),
 		  _state(nChan * (coefCount - 1), 0.) {}
@@ -80,17 +79,27 @@ private:
 
 	uint leftoverSamples{0}; // how many samples were left over from the last downsampling pass
 
-	template <class InIter, class OutIter>
-	inline void fma(InIter in, uint samplecount, CoefIter &h, OutIter out) const {
+	/** @brief Fused Multiply Add
+	 * For each channel, calculate the sum of each sample with the
+	 * corresponding coefficient.
+	 * @param[in] in Pointer to the input data
+	 * @param samplecount Number of samples, samplecount*nchan gives the length of the input array
+	 * @param[in] h Pointer to coefficient vector
+	 * @param[out] out Point to already allocated output array
+	 * @return pointer to current position in the coefficient vector
+	 */
+	inline CoefIter fma(
+		In const *RESTRICT in, uint samplecount, CoefIter h, Out *RESTRICT out) const {
 		for (uint i = 0; i < samplecount; ++i) {
 			const auto coef = *h;
 			for (uint chan = 0; chan < _nChan; ++chan) { *(out + chan) += coef * *in++; }
 			++h;
 		}
+		return h;
 	}
 };
 
-template <class In, class Coef>
+template <class In = double, class Coef>
 auto makeDownsampler(uint downRate, uint nChan, Coef const *coef, uint coefCount)
 	-> Downsampler<In, decltype(In() * Coef()), Coef> {
 	return Downsampler<In, decltype(In() * Coef()), Coef>(downRate, nChan, coef, coefCount);
@@ -107,12 +116,12 @@ void Downsampler<In, Out, Coef>::operator()(In const *in, uint inSamples, std::v
 	auto y = out.begin() + oldOutSize;
 
 	for (uint s = 0; s < outSamples; ++s) {
-		CoefIter h = _coefs.begin();
+		CoefIter h = _coefs.data();
 
-		const auto samp_from_state = std::max<int>((in - x) / (int) _nChan, 0);
-		fma(_state.end() - samp_from_state * _nChan, samp_from_state, h, y);
+		const auto samp_from_state = std::max<int>((in - x) / (int)_nChan, 0);
+		h = fma(&*_state.end() - samp_from_state * _nChan, samp_from_state, h, &*y);
 		const int samp_from_x = nCoefs() - samp_from_state;
-		fma(x + _nChan * samp_from_state, samp_from_x, h, y);
+		fma(x + _nChan * samp_from_state, samp_from_x, h, &*y);
 		y += _nChan;
 		x += _downRate * _nChan;
 	}
@@ -122,5 +131,5 @@ void Downsampler<In, Out, Coef>::operator()(In const *in, uint inSamples, std::v
 	auto *end = in + inSamples * _nChan;
 	std::copy(end - _state.size(), end, _state.begin());
 }
-}
+} // namespace firdn
 #undef RESTRICT
