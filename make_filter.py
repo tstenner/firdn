@@ -13,7 +13,7 @@ flts = []
 for i in range(1, len(sys.argv), 2):
     ntaps = int(sys.argv[i])
     downrate = int(sys.argv[i+1])
-    flts.append(signal.firwin(ntaps, .5 / downrate))
+    flts.append(signal.firwin(ntaps, .8 / downrate))
     flts[-1].tofile(f'filt_{downrate}x')
     arrayname = f'const double filt_{downrate}x[{ntaps}]'
     with open(f'filt_{downrate}x.c', 'xt') as f:

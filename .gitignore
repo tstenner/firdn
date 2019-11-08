@@ -5,3 +5,5 @@
 /.vs/
 /doc/_build
 /filt_*
+/testsignal
+/testsignal.out
