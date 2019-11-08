@@ -6,7 +6,7 @@ It can downsample multiplexed data of any type (that implements
 
 After constructing the downsampler, no further allocations and almost
 no copies of your data are made. Most compilers should be smart enough to use
-SSE/AVX intrinsics.
+SSE/AVX intrinsics (tested with icc 19, msvc v19.22, GCC 9.2, clang 9.0).
 
 # Example code
 
@@ -45,8 +45,9 @@ filter has coefficients. This requirement will be removed in a later release.
 
 # License
 
-This code is based on the upfirdn polyphase FIR resampling package
-(https://sourceforge.net/motorola/upfirdn), (c) 2009, Motorola, Inc.
+This code is based on the
+[upfirdn polyphase FIR resampling package](https://sourceforge.net/motorola/upfirdn),
+(c) 2009, Motorola, Inc.
 
 Everything else is licensed under the LGPL 3.0.
 
